@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+create_deck() {
+ local -n deckRef=$1
+
+ deckRef=($(echo {1..14}_{1..4} | tr ' ' '\n' | sort -R))
+ deblog "created deck of l: ${#deckRef[@]}"
+}

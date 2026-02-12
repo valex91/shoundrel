@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+ESCAPE_SEQ='\e['
+
+interpolate() {
+	local command=$1
+	printf '%b' "$ESCAPE_SEQ$command"
+}
+
+show_cursor() {
+	interpolate '?25h'	
+}
+
+hide_cursor() {
+	interpolate '?25l'
+}
+
+goto_tab() {
+	interpolate '?1049h'
+}
+
+return_tab() {
+	interpolate '?1049l'
+}
+
+get_size() {
+  declare -n _rowsRef=$1
+  declare -n _columnsRef=$2
+
+  read -r _rowsRef _columnsRef < <(stty size)
+}
+
+clear_screen() {
+  interpolate '2J'	
+}
+
+move_cursor() {
+ local x=${1:-0}
+ local y=${2:-0}
+
+ interpolate "$x;${y}H"
+}
+

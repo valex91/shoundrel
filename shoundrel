@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+DEBUG='true'
+
+current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source $current_dir/lib/tui
+source $current_dir/lib/utils
+source $current_dir/lib/cards
+
+ROWS=0
+COLS=0
+
+
+goto_tab
+clear_screen
+move_cursor
+
+get_size ROWS COLS
+
+get_term_size() {
+ deblog 'get_term_size called'
+ get_size ROWS COLS
+}
+
+# fires on resize
+trap 'get_term_size' WINCH
+
+hide_cursor
+echo "$ROWS $COLS"
+
+deck=()
+create_deck deck
+
+# Main loop reading keys
+while read -r -t 1 -n 0 || true; do
+	:
+done
+
+
+# Cleanup
+return_tab
+show_cursor
+
+
