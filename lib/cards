@@ -2,7 +2,53 @@
 
 create_deck() {
  local -n deckRef=$1
+ # creating Club & spades [monsters]
+ deckRef+=($(echo {1..14}_{1..2}))
+ # creating hearts & diamonds [ potions & weapons ]
+ deckRef+=($(echo {1..9}_{3..4}))
 
- deckRef=($(echo {1..14}_{1..4} | tr ' ' '\n' | sort -R))
+  for ((i=${#deckRef[@]}-1; i>0; i--)); do                                                                              
+    j=$((RANDOM % (i+1)))
+    tmp="${deckRef[$i]}"                                                                                                
+    deckRef[$i]="${deckRef[$j]}"                                                                                        
+    deckRef[$j]="$tmp"
+  done
+ 
+
  deblog "created deck of l: ${#deckRef[@]}"
+}
+
+interpolateValue() {
+ local value=$1
+
+ case $value in
+	 11) printf 'J';;
+         12) printf 'Q';;
+	 13) printf 'K';;
+	 14) printf 'A';;
+	 *) printf $value;;
+ esac
+}
+
+interpolateSeed() {
+ local seed=$1
+
+ case $seed in
+	 # spade
+	 1) printf '\u2660';;
+	 # club
+	 2) printf '\u2663';;
+	 # hearth
+	 3) printf '\u2665';;
+	 #diamonds
+	 4) printf '\u2666';;
+ esac
+}
+
+interpolateCard() {
+ local card=$1
+
+ IFS='_' read -r value seed <<< "$card"
+
+ printf '%b %b'  $(interpolateValue $value)$(interpolateSeed $seed)
 }

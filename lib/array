@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+splice() {
+ local -n arrayRef=$1
+ local start=${2:-0}
+ local count=${3:-0}
+
+ local removed=("${arrayRef[@]:$start:$count}")
+
+ arrayRef=("${arrayRef[@]:0:$start}" "${arrayRef[@]:$((start+count))}")
+
+ if [[ -n $4 ]]; then
+    local -n removedRef=$4
+    removedRef=("${removed[@]}")
+ fi
+}
+
+## just testing
+#array=(a b c d e f)
+#extracted=()
+#
+#splice array 1 3 extracted
+#
+#echo "${array[*]} and extracted ${extracted[*]}"
+

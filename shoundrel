@@ -7,11 +7,12 @@ current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source $current_dir/lib/tui
 source $current_dir/lib/utils
 source $current_dir/lib/cards
+source $current_dir/lib/array
 
 ROWS=0
 COLS=0
 
-
+#setup system
 goto_tab
 clear_screen
 move_cursor
@@ -23,14 +24,48 @@ get_term_size() {
  get_size ROWS COLS
 }
 
-# fires on resize
+cleanUp() {
+	return_tab
+	show_cursor
+}
+
+# TRAPS
 trap 'get_term_size' WINCH
+trap cleanUp exit 
+
 
 hide_cursor
 echo "$ROWS $COLS"
 
+hp=20
+room=()
 deck=()
 create_deck deck
+_ROOM_SIZE_=4
+
+generateRoom() {
+ local currentRoomSize=${#room[@]}
+
+ if (( currentRoomSize < _ROOM_SIZE_)); then
+	 local diff=$((_ROOM_SIZE_ - currentRoomSize))
+	 #room is not correct as it will need to be a merge rather then a replace
+	 splice deck 0 $diff room
+ fi
+}
+
+generateRoom
+
+drawLoop() {
+	# room
+	for card in "${room[@]}"; do
+		interpolateCard "$card"
+	done
+
+	# health
+	printf '[ %s\u2695 ]' $hp
+}
+
+drawLoop
 
 # Main loop reading keys
 while read -r -t 1 -n 0 || true; do
@@ -39,7 +74,4 @@ done
 
 
 # Cleanup
-return_tab
-show_cursor
-
 
