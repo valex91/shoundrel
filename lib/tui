@@ -41,3 +41,7 @@ move_cursor() {
  interpolate "$x;${y}H"
 }
 
+drawInverted() {
+ local content=$1
+ printf '\e[7m%b\e[0m' "$content"
+}

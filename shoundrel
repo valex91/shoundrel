@@ -35,43 +35,116 @@ trap cleanUp exit
 
 
 hide_cursor
+
 echo "$ROWS $COLS"
 
-hp=20
-room=()
-deck=()
-create_deck deck
+
+# STATE
+HP=20
+ROOM=()
+DECK=()
+ELEMENT_X=0
+POTION_USED_THIS_TURN=false
+SKIPPED_PREV_ROOM=false
+EQUIPPED_WEAPON=0
+
+# INIT
+create_deck DECK
 _ROOM_SIZE_=4
 
 generateRoom() {
- local currentRoomSize=${#room[@]}
+ local currentRoomSize=${#ROOM[@]}
+ local turnSkip=${1:-false}
 
- if (( currentRoomSize < _ROOM_SIZE_)); then
+ if [[ $turnSkip == true ]]; then
+ 	 splice DECK 0 4 ROOM
+ else
 	 local diff=$((_ROOM_SIZE_ - currentRoomSize))
-	 #room is not correct as it will need to be a merge rather then a replace
-	 splice deck 0 $diff room
+   local justDrawn=()
+	 splice DECK 0 $diff justDrawn
+	 ROOM=("${justDrawn[@]}" "${ROOM[@]}")
  fi
 }
 
 generateRoom
 
 drawLoop() {
-	# room
-	for card in "${room[@]}"; do
-		interpolateCard "$card"
+	clear_screen
+	move_cursor
+	local currentIndex=0
+	local isSelected=false
+	
+	# ROOM
+	for card in "${ROOM[@]}"; do
+		isSelected=$(( currentIndex == ELEMENT_X ))
+		interpolateCard "$card" "$isSelected"
+		printf '  '
+		(( currentIndex++ ))
 	done
 
 	# health
-	printf '[ %s\u2695 ]' $hp
+	printf '[ %s\u2695 ]' $HP
 }
+
+strategy() {
+	local seed=$1
+	local value=$2
+
+	case $seed in
+		1|2) (( HP -= value - EQUIPPED_WEAPON ));;
+		3) (( HP += value ));;
+		4) EQUIPPED_WEAPON=$value;;
+	esac
+}
+
+selectedCardStrategy() {
+	local pick=${ROOM[ELEMENT_X]}
+	local value
+	local seed
+	local pickedIdx=$(findIndex ROOM $pick)
+	splice ROOM $pickedIdx 1
+
+	IFS='_' read -r value seed <<< "$pick"
+
+  strategy "$seed" "$value"
+}
+
+skipRoom() {
+ if [[ $SKIPPED_PREV_ROOM == false ]]; then
+	 generateRoom true
+	 SKIPPED_PREV_ROOM=true
+ fi
+}
+
+handleKeys() {
+ local input=$1
+
+ case $input in
+	 a) (( ELEMENT_X = (ELEMENT_X - 1 + ${#ROOM[@]} ) % ${#ROOM[@]}  ));;
+	 d) (( ELEMENT_X = (ELEMENT_X + 1) % ${#ROOM[@]}  ));;
+	 e) selectedCardStrategy $input;;
+	 n) skipRoom;;
+	esac
+}
+
+main() {
+ local inputK=$1
+ handleKeys "$inputK"
+ drawLoop
+}
+
 
 drawLoop
 
 # Main loop reading keys
-while read -r -t 1 -n 0 || true; do
-	:
+while true; do
+	read -rsn1 key
+	if [[ $key == $'\e' ]]; then
+			read -rsn2 rest
+			key+="$rest"
+	fi
+	main $key
 done
 
 
-# Cleanup
 

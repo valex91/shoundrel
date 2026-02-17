@@ -15,6 +15,23 @@ splice() {
  fi
 }
 
+findIndex() {
+ local -n arrayRef=$1
+ local toFind=$2
+ local foundAt=-1
+ local idx=-1
+
+ for el in "${arrayRef[@]}"; do
+    (( idx++ ))
+   if [[ $el == $toFind  ]]; then
+      foundAt=$idx
+      break
+   fi
+ done
+
+ echo "$foundAt"
+}
+
 ## just testing
 #array=(a b c d e f)
 #extracted=()

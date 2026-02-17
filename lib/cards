@@ -34,21 +34,28 @@ interpolateSeed() {
  local seed=$1
 
  case $seed in
-	 # spade
+	 # spade MONSTER
 	 1) printf '\u2660';;
-	 # club
+	 # club MONSTER
 	 2) printf '\u2663';;
-	 # hearth
+	 # hearth POTION
 	 3) printf '\u2665';;
-	 #diamonds
+	 #diamonds WEAPON
 	 4) printf '\u2666';;
  esac
 }
 
 interpolateCard() {
  local card=$1
+ local selected=${2:-0}
 
  IFS='_' read -r value seed <<< "$card"
+ local content
+ content=$(interpolateValue $value)$(interpolateSeed $seed)
 
- printf '%b %b'  $(interpolateValue $value)$(interpolateSeed $seed)
+ if (( selected )); then
+   drawInverted "$content"
+ else 
+   printf '%b' "$content"
+ fi
 }
