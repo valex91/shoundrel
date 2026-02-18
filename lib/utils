@@ -6,3 +6,24 @@ deblog() {
 	 echo "<debug> $@"
  fi
 }
+
+max() {
+ local toTest=$1
+ local MAX=$2
+
+ echo $(( $toTest > $MAX ?  $MAX : $toTest ))
+}
+
+min() {
+ local a=$1
+ local b=$2
+
+ echo $(( a < b ? a : b ))
+}
+
+clampFloor() {
+ local value=$1
+ local floor=$2
+
+ echo $(( value < floor ? floor : value ))
+}

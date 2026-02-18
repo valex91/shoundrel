@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-create_deck() {
+createDeck() {
  local -n deckRef=$1
  # creating Club & spades [monsters]
  deckRef+=($(echo {1..14}_{1..2}))
@@ -45,13 +45,29 @@ interpolateSeed() {
  esac
 }
 
+drawCard() {
+  local value=$1
+  local seed=$2
+  local startingColumn=$3
+ # I need to split this body because i need to iterate to draw correctly 
+  local body=$(cat <<EOF
+    ╭─────╮
+    │ $2  │
+    │ $1  │
+    ╰─────╯
+EOF
+  )
+
+  printf '%b' "$body"
+}
+
 interpolateCard() {
  local card=$1
  local selected=${2:-0}
 
  IFS='_' read -r value seed <<< "$card"
  local content
- content=$(interpolateValue $value)$(interpolateSeed $seed)
+ content=$(drawCard $value $seed)
 
  if (( selected )); then
    drawInverted "$content"

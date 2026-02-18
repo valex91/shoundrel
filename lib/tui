@@ -7,34 +7,34 @@ interpolate() {
 	printf '%b' "$ESCAPE_SEQ$command"
 }
 
-show_cursor() {
+showCursor() {
 	interpolate '?25h'	
 }
 
-hide_cursor() {
+hideCursor() {
 	interpolate '?25l'
 }
 
-goto_tab() {
+gotoTab() {
 	interpolate '?1049h'
 }
 
-return_tab() {
+returnTab() {
 	interpolate '?1049l'
 }
 
-get_size() {
+getSize() {
   declare -n _rowsRef=$1
   declare -n _columnsRef=$2
 
   read -r _rowsRef _columnsRef < <(stty size)
 }
 
-clear_screen() {
+clearScreen() {
   interpolate '2J'	
 }
 
-move_cursor() {
+moveCursor() {
  local x=${1:-0}
  local y=${2:-0}
 
