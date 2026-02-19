@@ -49,25 +49,41 @@ drawCard() {
   local value=$1
   local seed=$2
   local startingColumn=$3
- # I need to split this body because i need to iterate to draw correctly 
-  local body=$(cat <<EOF
-    ╭─────╮
-    │ $2  │
-    │ $1  │
-    ╰─────╯
-EOF
-  )
+  local startingRow=$4
+  local interpolatedSeed=$(interpolateSeed $seed)
+  local interpolatedValue=$(interpolateValue $value)
+  if (( value == 10)); then 
+    local valueLine="│ $interpolatedValue  │"
+  else
+    local valueLine="│ $interpolatedValue   │"
+  fi
 
-  printf '%b' "$body"
+  local lines=(
+  "╭─────╮"
+  "│ $interpolatedSeed   │"
+ "$valueLine"
+  "╰─────╯"
+  )
+  local rowL=${#lines[@]}
+
+  for ((i=0;i<$rowL;i++)); do
+    #term cord are not 0 index just because
+    local termCord=$(($startingRow + $i + 1))
+
+    moveCursor "$termCord" "$startingColumn"
+    printf '%b' "${lines[i]}"
+  done
 }
 
 interpolateCard() {
  local card=$1
  local selected=${2:-0}
+ local startingColumn=$3
+ local startingRow=${4:-0}
 
  IFS='_' read -r value seed <<< "$card"
  local content
- content=$(drawCard $value $seed)
+ content=$(drawCard "$value" "$seed" "$startingColumn" "$startingRow")
 
  if (( selected )); then
    drawInverted "$content"

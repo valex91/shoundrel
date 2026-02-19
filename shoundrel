@@ -48,7 +48,7 @@ POTION_USED_THIS_TURN=false
 SKIPPED_PREV_ROOM=false
 EQUIPPED_WEAPON=0
 _ROOM_SIZE_=4
-
+DRAWN_CARD_SIZE=7
 # ICONS
 SWORD=$'\u2694'
 
@@ -78,11 +78,16 @@ drawLoop() {
 	moveCursor
 	local currentIndex=0
 	local isSelected=false
+
+	local terminalCenterX=$(($ROWS / 2))
+	local terminalCenterY=$(( ($COLS / 2) - $DRAWN_CARD_SIZE ))
 	
 	# ROOM
 	for card in "${ROOM[@]}"; do
 		isSelected=$(( currentIndex == ELEMENT_X ))
-		interpolateCard "$card" "$isSelected"
+		# term is not 0 indexed pt 2
+		local columnToDraw=$(( ($currentIndex * $DRAWN_CARD_SIZE + 1) + $terminalCenterY ))
+		interpolateCard "$card" "$isSelected" "$columnToDraw" "$terminalCenterX"
 		printf '  '
 		(( currentIndex++ ))
 	done
