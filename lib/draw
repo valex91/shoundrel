@@ -8,11 +8,10 @@ drawAtPosition() {
 
  local heightOfContent=${#_localCtn[@]}
 
-  for ((i=0;i<$heightOfContent;i++)); do
-    #term cord are not 0 index just because
-    local termCord=$(($startingRow + $i + 1))
-
+  local _dai=0
+  for ((_dai=0;_dai<$heightOfContent;_dai++)); do
+    local termCord=$(($startingRow + $_dai + 1))
     moveCursor "$termCord" "$startingColumn"
-    printf '%b' "${titleRows[i]}"
+    printf '%b' "${_localCtn[_dai]}"
   done
 }

@@ -7,10 +7,11 @@ createDeck() {
  # creating hearts & diamonds [ potions & weapons ]
  deckRef+=($(echo {1..9}_{3..4}))
 
-  for ((i=${#deckRef[@]}-1; i>0; i--)); do                                                                              
-    j=$((RANDOM % (i+1)))
-    tmp="${deckRef[$i]}"                                                                                                
-    deckRef[$i]="${deckRef[$j]}"                                                                                        
+  local _cdi=0
+  for ((_cdi=${#deckRef[@]}-1; _cdi>0; _cdi--)); do
+    local j=$(($RANDOM % (_cdi+1)))
+    local tmp="${deckRef[$_cdi]}"
+    deckRef[$_cdi]="${deckRef[$j]}"
     deckRef[$j]="$tmp"
   done
  
@@ -64,15 +65,8 @@ drawCard() {
  "$valueLine"
   "╰─────╯"
   )
-  local rowL=${#lines[@]}
-
-  for ((i=0;i<$rowL;i++)); do
-    #term cord are not 0 index just because
-    local termCord=$(($startingRow + $i + 1))
-
-    moveCursor "$termCord" "$startingColumn"
-    printf '%b' "${lines[i]}"
-  done
+  
+  drawAtPosition "$startingRow" "$startingColumn" lines
 }
 
 interpolateCard() {

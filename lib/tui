@@ -2,6 +2,29 @@
 
 ESCAPE_SEQ='\e['
 
+_rules=(
+  'Deck'
+  '- Clubs & Spades (1–14): Monsters — damage = value'
+  '- Diamonds (1–9): Weapons — damage = value, must equip on pickup, replaces previous'
+  '- Hearts (1–9): Potions — heal = value, max HP 20, only 1 per turn'
+
+  'Turn (e to pick)'
+  '- Room always has 4 cards, you must pick 3 (1 carries over to next room)'
+  '- Weapon: auto-equip, discard old weapon + its monsters'
+  '- Potion: heal up to 20, second potion in same turn is discarded with no effect'
+  '- Monster: take full damage barehanded, OR use weapon → damage = monster - weapon (min 0)'
+   ' - After using weapon on a monster, weapon can only fight monsters of strictly lower value than the last one it'
+  'killed'
+
+  'Skip room (n)'
+  '- Scoop all 4 cards to bottom of dungeon'
+  '- Cannot skip two rooms in a row'
+
+  'End conditions'
+  '- HP ≤ 0 → lose'
+  '- Deck empty → win'
+ )
+
 interpolate() {
 	local command=$1
 	printf '%b' "$ESCAPE_SEQ$command"
@@ -59,8 +82,12 @@ drawTitle() {
     ' |____/|_| |_|\___/ \__,_|_| |_|\__,_|_|  \___|_| '
   )
 
+
+  local _toPlay="press P to play"
   drawAtPosition "$startingRow" "$startingCol" titleRows 
   local titleHeight=${#titleRows[@]}
   moveCursor $(($startingRow+$titleHeight)) 0
-  printf "press P to play"
+  printf "$_toPlay"
+  drawAtPosition $(($startingRow+$titleHeight+1)) 0  _rules
+
 }

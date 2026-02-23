@@ -32,6 +32,24 @@ findIndex() {
  echo "$foundAt"
 }
 
+longestMember() {
+   local -n arrayRef=$1
+   local _length=''
+   # I know its not negative infinite but its good enough for now
+   local minLength=0
+
+   for el in "${arrayRef[@]}"; do
+      local currentElLength=${#el}
+      
+      if (( $currentElLength > $minLength )); then {
+         minLength=$currentElLength
+      }
+      fi
+   done
+
+   echo $minLength
+}
+
 ## just testing
 #array=(a b c d e f)
 #extracted=()

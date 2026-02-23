@@ -51,6 +51,9 @@ SKIPPED_PREV_ROOM=false
 EQUIPPED_WEAPON=0
 _ROOM_SIZE_=4
 DRAWN_CARD_SIZE=7
+PREV_MONSTER_SLAYED=0
+TOASTS=()
+
 # ICONS
 SWORD=$'\u2694'
 
@@ -60,6 +63,7 @@ generateRoom() {
 
  if [[ $turnSkip == true ]]; then
 	 local amountToDraw=$(min 4 ${#DECK[@]} )
+	 DECK=("${DECK[@]}" "${ROOM[@]}")
 	 splice DECK 0 $amountToDraw ROOM
  else
 	 local diff=$((_ROOM_SIZE_ - currentRoomSize))
@@ -93,6 +97,19 @@ drawLoop() {
 	# health
 	printf '[ %s\u2695 ]' $HP
 
+	# Toast
+	local _toastLength=${#TOASTS[@]}
+
+	if (( $_toastLength > 0 )); then
+		local longestToast=$(longestMember TOASTS)
+
+		local ti=0
+		for ((ti=0; ti < $_toastLength; ti++)) {
+			moveCursor $(( $ROWS-$longestToast )) $((ti + 1))
+			printf '%b' "${TOASTS[ti]}"
+		}
+	fi	
+
 	# Weapon
 	if (( EQUIPPED_WEAPON > 0 )); then 
 		printf '[%s  %b]' $EQUIPPED_WEAPON $WEAPON
@@ -103,6 +120,8 @@ drawLoop() {
 
 nextTurn() {
 	SKIPPED_PREV_ROOM=false
+	POTION_USED_THIS_TURN=false
+	TOASTS=()
 	generateRoom
 }
 
@@ -111,16 +130,30 @@ strategy() {
 	local value=$2
 
 	case $seed in
-		1|2) 
-			local monsterInteractionResult=$((value - EQUIPPED_WEAPON))
-			local weaponConsumption=$((EQUIPPED_WEAPON - value))
-			local safeMonsterInteractionResult=$(clampFloor $monsterInteractionResult 0)
-			local safeWeaponConsumption=$(clampFloor $weaponConsumption 0)
-			EQUIPPED_WEAPON=$safeWeaponConsumption
-			(( HP -= $safeMonsterInteractionResult ));;
+		1|2)
+			if [[ $PREV_MONSTER_SLAYED != 0 && $(($value > $PREV_MONSTER_SLAYED)) ]]; then
+				# return rn Im not putting warnings up
+   			(( HP -= $value ))
+			else
+				local monsterInteractionResult=$((value - EQUIPPED_WEAPON))
+				local weaponConsumption=$((EQUIPPED_WEAPON - value))
+				local safeMonsterInteractionResult=$(clampFloor $monsterInteractionResult 0)
+				local safeWeaponConsumption=$(clampFloor $weaponConsumption 0)
+				if (( $EQUIPPED_WEAPON > 0 )); then
+					PREV_MONSTER_SLAYED=$value
+				fi
+
+				(( HP -= $safeMonsterInteractionResult ))
+			fi;;
 		3) local hpWithPotion=$(( HP + value ))
-			HP=$(max $hpWithPotion 20);;
-		4) EQUIPPED_WEAPON=$value;;
+			if [[ $POTION_USED_THIS_TURN == false ]]; then
+				HP=$(max $hpWithPotion 20)
+				POTION_USED_THIS_TURN=true
+			else
+				TOASTS=("${TOASTS[@]}" "Already used a potion this turn" )
+			fi;;
+		4) EQUIPPED_WEAPON=$value
+       PREV_MONSTER_SLAYED=0;;
 	esac
 
 	currentRoomSize=${#ROOM[@]}
@@ -160,6 +193,8 @@ skipRoom() {
  if [[ $SKIPPED_PREV_ROOM == false ]]; then
 	 generateRoom true
 	 SKIPPED_PREV_ROOM=true
+ else
+	TOASTS=("${TOASTS[@]}" "can skip only once a turn")
  fi
 }
 
@@ -190,7 +225,7 @@ playGame() {
 handleMenuKeys() {
 	local input=$1
 	case $input in
-		p) break 
+		p)  
 			playGame;;
 
 	esac
