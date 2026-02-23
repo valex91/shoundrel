@@ -45,3 +45,22 @@ drawInverted() {
  local content=$1
  printf '\e[7m%b\e[0m' "$content"
 }
+
+
+drawTitle() {
+  local startingRow=${1:-0}
+  local startingCol=${2:-0}
+
+  titleRows=(
+    '  ____  _                           _          _  ' \
+    ' / ___|| |__   ___  _   _ _ __   __| |_ __ ___| | ' \
+    " \___ \| '_ \ / _ \| | | | '_ \ / _\` | '__/ _ \ | " \
+    '  ___) | | | | (_) | |_| | | | | (_| | | |  __/ | ' \
+    ' |____/|_| |_|\___/ \__,_|_| |_|\__,_|_|  \___|_| '
+  )
+
+  drawAtPosition "$startingRow" "$startingCol" titleRows 
+  local titleHeight=${#titleRows[@]}
+  moveCursor $(($startingRow+$titleHeight)) 0
+  printf "press P to play"
+}

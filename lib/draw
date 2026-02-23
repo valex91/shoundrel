@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+drawAtPosition() {
+ local startingRow=${1:-0}
+ local startingColumn=${2:-0}
+
+ local -n _localCtn=$3
+
+ local heightOfContent=${#_localCtn[@]}
+
+  for ((i=0;i<$heightOfContent;i++)); do
+    #term cord are not 0 index just because
+    local termCord=$(($startingRow + $i + 1))
+
+    moveCursor "$termCord" "$startingColumn"
+    printf '%b' "${titleRows[i]}"
+  done
+}

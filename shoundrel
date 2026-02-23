@@ -8,6 +8,7 @@ source $currentDir/lib/tui
 source $currentDir/lib/utils
 source $currentDir/lib/cards
 source $currentDir/lib/array
+source $currentDir/lib/draw
 
 ROWS=0
 COLS=0
@@ -21,6 +22,7 @@ getSize ROWS COLS
 
 getTermSize() {
  deblog 'getTermSize called'
+ drawLoop
  getSize ROWS COLS
 }
 
@@ -52,9 +54,6 @@ DRAWN_CARD_SIZE=7
 # ICONS
 SWORD=$'\u2694'
 
-# INIT
-createDeck DECK
-
 generateRoom() {
  local currentRoomSize=${#ROOM[@]}
  local turnSkip=${1:-false}
@@ -71,7 +70,6 @@ generateRoom() {
  fi
 }
 
-generateRoom
 
 drawLoop() {
 	clearScreen
@@ -165,7 +163,7 @@ skipRoom() {
  fi
 }
 
-handleKeys() {
+handleGameKeys() {
  local input=$1
 
  case $input in
@@ -176,20 +174,52 @@ handleKeys() {
 	esac
 }
 
-main() {
+playGame() {
+	# INIT
+	createDeck DECK
+	generateRoom
+	drawLoop
+
+	 # Main loop reading keys
+	while true; do
+		read -rsn1 key
+		mainGameLoop $key
+	done
+}
+
+handleMenuKeys() {
+	local input=$1
+	case $input in
+		p) break 
+			playGame;;
+
+	esac
+}
+
+menuDrawLoop() {
+ clearScreen
+ drawTitle 0 "$((COLS / 2))"
+}
+
+mainGameLoop() {
  local inputK=$1
- handleKeys "$inputK"
+ handleGameKeys "$inputK"
  drawLoop
 }
 
+mainMenuLoop() {
+ local inputK=$1
+ menuDrawLoop
+ handleMenuKeys "$inputK"
+}
 
-drawLoop
 
-# Main loop reading keys
+
+# Main loop
+menuDrawLoop
 while true; do
 	read -rsn1 key
-	main $key
+	mainMenuLoop $key
 done
-
 
 
