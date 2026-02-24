@@ -91,3 +91,18 @@ drawTitle() {
   drawAtPosition $(($startingRow+$titleHeight+1)) 0  _rules
 
 }
+
+writeAtPosition() {
+    local startingRow=${1:-0}
+    local startingCol=${2:-0}
+    local toPrint=$3
+    local isInverted=$4
+
+    moveCursor "$startingRow" "$startingCol"
+    
+    if [[ $isInverted == true ]]; then
+      drawInverted "$toPrint"
+    else
+      printf '%b' "$toPrint"
+    fi  
+}

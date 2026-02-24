@@ -83,7 +83,10 @@ drawLoop() {
 
 	local terminalCenterX=$(($ROWS / 2))
 	local terminalCenterY=$(( ($COLS / 2) - $DRAWN_CARD_SIZE ))
-	
+
+	# DECK
+  drawDeck "${#DECK[@]}" $(($terminalCenterY - ($DRAWN_CARD_SIZE * 2))) $terminalCenterX
+
 	# ROOM
 	for card in "${ROOM[@]}"; do
 		isSelected=$(( currentIndex == ELEMENT_X ))
@@ -94,10 +97,28 @@ drawLoop() {
 		(( currentIndex++ ))
 	done
 
-	# health
-	printf '[ %s\u2695 ]' $HP
+	local TUI_PADDING=1
+# health
+	local healthString="< $HP \u2665 >"
+	writeAtPosition 1 1 "$healthString"
 
-	# Toast
+# Weapon
+  local hpStringLength=${#healthString}
+	if (($EQUIPPED_WEAPON > 0 )); then
+		local weaponIcon=$SWORD	
+	else
+		local weaponIcon="\u270B"
+	fi
+  local weaponString="<$EQUIPPED_WEAPON $weaponIcon >"
+	writeAtPosition 1 $(($hpStringLength + $TUI_PADDING)) "$weaponString"
+
+# last Slayed monster
+ if (( $PREV_MONSTER_SLAYED > 0 )); then
+	local weaponStringLength=${#weaponString}
+	writeAtPosition 1 $(($hpStringLength + $weaponStringLength + $TUI_PADDING * 2 )) "<Last slayed: $PREV_MONSTER_SLAYED \u271D>"
+ fi
+
+# Toast
 	local _toastLength=${#TOASTS[@]}
 
 	if (( $_toastLength > 0 )); then
@@ -105,17 +126,11 @@ drawLoop() {
 
 		local ti=0
 		for ((ti=0; ti < $_toastLength; ti++)) {
-			moveCursor $(( $ROWS-$longestToast )) $((ti + 1))
-			printf '%b' "${TOASTS[ti]}"
+			writeAtPosition $(( $ti + 1)) $(( $COLS-$longestToast )) "${TOASTS[ti]}" true
 		}
 	fi	
 
-	# Weapon
-	if (( EQUIPPED_WEAPON > 0 )); then 
-		printf '[%s  %b]' $EQUIPPED_WEAPON $WEAPON
-	else
-			printf '[%s  %b]' $EQUIPPED_WEAPON $FIST
- 	fi
+
 }
 
 nextTurn() {
@@ -150,13 +165,12 @@ strategy() {
 				HP=$(max $hpWithPotion 20)
 				POTION_USED_THIS_TURN=true
 			else
-				TOASTS=("${TOASTS[@]}" "Already used a potion this turn" )
+				TOASTS=("${TOASTS[@]}" "Potion discarded — already healed this turn")
 			fi;;
 		4) EQUIPPED_WEAPON=$value
        PREV_MONSTER_SLAYED=0;;
 	esac
 
-	currentRoomSize=${#ROOM[@]}
 	currentDeckSize=${#DECK[@]}
 	if (( $HP <= 0 )); then
 		echo "lost"
@@ -169,9 +183,6 @@ strategy() {
 	fi
 
 
-	if (( $currentRoomSize <= 1 )); then 
-		nextTurn
-	fi
 }
 
 gameLoopTick() {
@@ -186,7 +197,11 @@ gameLoopTick() {
 	# parsing the picked card
 	IFS='_' read -r value seed <<< "$pick"
 
-  strategy "$seed" "$value"
+	strategy "$seed" "$value"
+
+	if (( ${#ROOM[@]} <= 1 )); then
+		nextTurn
+	fi
 }
 
 skipRoom() {
@@ -194,7 +209,7 @@ skipRoom() {
 	 generateRoom true
 	 SKIPPED_PREV_ROOM=true
  else
-	TOASTS=("${TOASTS[@]}" "can skip only once a turn")
+	TOASTS=("${TOASTS[@]}" "Cannot skip two rooms in a row")
  fi
 }
 
