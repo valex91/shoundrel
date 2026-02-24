@@ -21,9 +21,14 @@ moveCursor
 getSize ROWS COLS
 
 getTermSize() {
- deblog 'getTermSize called'
- drawLoop
  getSize ROWS COLS
+ local deckL=${#DECK[@]}
+ local roomL=${#ROOM[@]}
+ if (( ($deckL + $roomL) > 0 )); then
+	drawLoop
+ else
+	menuDrawLoop
+ fi
 }
 
 cleanUp() {
@@ -69,7 +74,7 @@ generateRoom() {
 	 local diff=$((_ROOM_SIZE_ - currentRoomSize))
    local justDrawn=()
 	 local amountToDraw=$(min ${#DECK[@]} $diff)
-	 splice DECK 0 $diff justDrawn
+	 splice DECK 0 $amountToDraw justDrawn
 	 ROOM=("${justDrawn[@]}" "${ROOM[@]}")
  fi
 }
@@ -97,26 +102,8 @@ drawLoop() {
 		(( currentIndex++ ))
 	done
 
-	local TUI_PADDING=1
-# health
-	local healthString="< $HP \u2665 >"
-	writeAtPosition 1 1 "$healthString"
-
-# Weapon
-  local hpStringLength=${#healthString}
-	if (($EQUIPPED_WEAPON > 0 )); then
-		local weaponIcon=$SWORD	
-	else
-		local weaponIcon="\u270B"
-	fi
-  local weaponString="<$EQUIPPED_WEAPON $weaponIcon >"
-	writeAtPosition 1 $(($hpStringLength + $TUI_PADDING)) "$weaponString"
-
-# last Slayed monster
- if (( $PREV_MONSTER_SLAYED > 0 )); then
-	local weaponStringLength=${#weaponString}
-	writeAtPosition 1 $(($hpStringLength + $weaponStringLength + $TUI_PADDING * 2 )) "<Last slayed: $PREV_MONSTER_SLAYED \u271D>"
- fi
+	# Stats panel
+	drawStats "$HP" "$EQUIPPED_WEAPON" "$PREV_MONSTER_SLAYED"
 
 # Toast
 	local _toastLength=${#TOASTS[@]}
@@ -146,7 +133,7 @@ strategy() {
 
 	case $seed in
 		1|2)
-			if [[ $PREV_MONSTER_SLAYED != 0 && $(($value > $PREV_MONSTER_SLAYED)) ]]; then
+			if [[ $PREV_MONSTER_SLAYED != 0 ]] && (( value > PREV_MONSTER_SLAYED )); then
 				# return rn Im not putting warnings up
    			(( HP -= $value ))
 			else
@@ -171,14 +158,8 @@ strategy() {
        PREV_MONSTER_SLAYED=0;;
 	esac
 
-	currentDeckSize=${#DECK[@]}
 	if (( $HP <= 0 )); then
 		echo "lost"
-		exit 0
-	fi
-
-	if (( $currentDeckSize == 0 )); then
-		echo "win"
 		exit 0
 	fi
 
@@ -198,6 +179,11 @@ gameLoopTick() {
 	IFS='_' read -r value seed <<< "$pick"
 
 	strategy "$seed" "$value"
+
+	if (( ${#ROOM[@]} == 0 && ${#DECK[@]} == 0 )); then
+		echo "win"
+		exit 0
+	fi
 
 	if (( ${#ROOM[@]} <= 1 )); then
 		nextTurn
@@ -248,7 +234,10 @@ handleMenuKeys() {
 
 menuDrawLoop() {
  clearScreen
- drawTitle 0 "$((COLS / 2))"
+ moveCursor
+
+ local titleL=$(getTitleAsciiLength)
+ drawTitle 1 "$(( (COLS / 2) - ( titleL /2) ))"
 }
 
 mainGameLoop() {
@@ -268,7 +257,7 @@ mainMenuLoop() {
 # Main loop
 menuDrawLoop
 while true; do
-	read -rsn1 key
+	read -rsn1  key
 	mainMenuLoop $key
 done
 

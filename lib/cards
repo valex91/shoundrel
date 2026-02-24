@@ -3,9 +3,9 @@
 createDeck() {
  local -n deckRef=$1
  # creating Club & spades [monsters]
- deckRef+=($(echo {1..14}_{1..2}))
+ deckRef+=($(echo {2..14}_{1..2}))
  # creating hearts & diamonds [ potions & weapons ]
- deckRef+=($(echo {1..9}_{3..4}))
+ deckRef+=($(echo {2..10}_{3..4}))
 
   local _cdi=0
   for ((_cdi=${#deckRef[@]}-1; _cdi>0; _cdi--)); do
