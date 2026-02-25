@@ -7,6 +7,21 @@ deblog() {
  fi
 }
 
+errorMessage() {
+	local message=$1
+
+	echo "$1" 1>&2
+	exit 1
+}
+
+checkVersion(){
+	declare -n test || errorMessage "Bash 4.3+ is required"
+}
+
+checkSize() {
+	$(($ROWS >= 24 && $COLS >= 80)) || errorMessage "24x80 is the minimum size to render the ui"
+}
+
 max() {
  local toTest=$1
  local MAX=$2

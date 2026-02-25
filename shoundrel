@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-DEBUG='true'
 
 currentDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -9,6 +8,8 @@ source $currentDir/lib/utils
 source $currentDir/lib/cards
 source $currentDir/lib/array
 source $currentDir/lib/draw
+
+checkVersion
 
 ROWS=0
 COLS=0
@@ -19,6 +20,7 @@ clearScreen
 moveCursor
 
 getSize ROWS COLS
+checkSize
 
 getTermSize() {
  getSize ROWS COLS
